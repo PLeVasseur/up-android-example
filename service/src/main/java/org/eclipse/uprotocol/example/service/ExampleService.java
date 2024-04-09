@@ -50,12 +50,11 @@ import org.eclipse.uprotocol.core.usubscription.v3.USubscription;
 import org.eclipse.uprotocol.example.v1.Door;
 import org.eclipse.uprotocol.example.v1.DoorCommand;
 import org.eclipse.uprotocol.example.v1.Example;
-import org.eclipse.uprotocol.rpc.URpcListener;
+import org.eclipse.uprotocol.transport.UListener;
 import org.eclipse.uprotocol.transport.builder.UAttributesBuilder;
 import org.eclipse.uprotocol.uri.factory.UResourceBuilder;
 import org.eclipse.uprotocol.v1.UCode;
 import org.eclipse.uprotocol.v1.UMessage;
-import org.eclipse.uprotocol.v1.UPayload;
 import org.eclipse.uprotocol.v1.UPriority;
 import org.eclipse.uprotocol.v1.UResource;
 import org.eclipse.uprotocol.v1.UStatus;
@@ -67,7 +66,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @SuppressWarnings("SameParameterValue")
 public class ExampleService extends Service {
@@ -104,8 +103,8 @@ public class ExampleService extends Service {
     }
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    private final Map<UUri, BiConsumer<UPayload, CompletableFuture<UPayload>>> mMethodHandlers = new HashMap<>();
-    private final URpcListener mURpcListener = this::handleRequestMessage;
+    private final Map<UUri, Consumer<UMessage>> mMethodHandlers = new HashMap<>();
+    private final UListener mRequestListener = this::handleRequestMessage;
     private UPClient mUPClient;
     private USubscription.Stub mUSubscriptionStub;
 
@@ -161,10 +160,9 @@ public class ExampleService extends Service {
         super.onDestroy();
     }
 
-    private CompletableFuture<UStatus> registerMethod(@NonNull UUri methodUri,
-            @NonNull BiConsumer<UPayload, CompletableFuture<UPayload>> handler) {
+    private CompletableFuture<UStatus> registerMethod(@NonNull UUri methodUri, @NonNull Consumer<UMessage> handler) {
         return CompletableFuture.supplyAsync(() -> {
-            final UStatus status = mUPClient.registerRpcListener(methodUri, mURpcListener);
+            final UStatus status = mUPClient.registerListener(methodUri, mRequestListener);
             if (isOk(status)) {
                 mMethodHandlers.put(methodUri, handler);
             }
@@ -174,7 +172,7 @@ public class ExampleService extends Service {
 
     private CompletableFuture<UStatus> unregisterMethod(@NonNull UUri methodUri) {
         return CompletableFuture.supplyAsync(() -> {
-            final UStatus status = mUPClient.unregisterRpcListener(methodUri, mURpcListener);
+            final UStatus status = mUPClient.unregisterListener(methodUri, mRequestListener);
             mMethodHandlers.remove(methodUri);
             return logStatus("unregisterMethod", status, Key.URI, stringify(methodUri));
         });
@@ -198,19 +196,19 @@ public class ExampleService extends Service {
         logStatus("publish", status, Key.TOPIC, stringify(message.getAttributes().getSource()));
     }
 
-    private void handleRequestMessage(@NonNull UMessage requestMessage, @NonNull CompletableFuture<UPayload> responseFuture) {
+    private void handleRequestMessage(@NonNull UMessage requestMessage) {
         final UUri methodUri = requestMessage.getAttributes().getSink();
-        final BiConsumer<UPayload, CompletableFuture<UPayload>> handler = mMethodHandlers.get(methodUri);
+        final Consumer<UMessage> handler = mMethodHandlers.get(methodUri);
         if (handler != null) {
-            handler.accept(requestMessage.getPayload(), responseFuture);
+            handler.accept(requestMessage);
         }
     }
 
-    private void executeDoorCommand(@NonNull UPayload requestPayload,
-            @NonNull CompletableFuture<UPayload> responseFuture) {
+    private void executeDoorCommand(@NonNull UMessage requestMessage) {
         UStatus status;
         try {
-            final DoorCommand request = unpack(requestPayload, DoorCommand.class).orElseThrow(IllegalArgumentException::new);
+            final DoorCommand request = unpack(requestMessage.getPayload(), DoorCommand.class)
+                    .orElseThrow(IllegalArgumentException::new);
             final String instance = request.getDoor().getInstance();
             final DoorCommand.Action action = request.getAction();
             Log.i(TAG, join(Key.REQUEST, "executeDoorCommand", "instance", instance, "action", action));
@@ -234,7 +232,11 @@ public class ExampleService extends Service {
             status = toStatus(e);
         }
         logStatus("executeDoorCommand", status);
-        responseFuture.complete(packToAny(status));
+
+        mUPClient.send(UMessage.newBuilder()
+                .setPayload(packToAny(status))
+                .setAttributes(UAttributesBuilder.response(requestMessage.getAttributes()).build())
+                .build());
     }
 
     private @NonNull UStatus logStatus(@NonNull String method, @NonNull UStatus status, Object... args) {
