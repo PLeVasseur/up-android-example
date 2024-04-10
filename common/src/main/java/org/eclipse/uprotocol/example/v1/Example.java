@@ -26,7 +26,10 @@ package org.eclipse.uprotocol.example.v1;
 import static org.eclipse.uprotocol.rpc.RpcMapper.mapResponse;
 import static org.eclipse.uprotocol.transport.builder.UPayloadBuilder.packToAny;
 
+import android.util.Log;
+
 import com.google.protobuf.DescriptorProtos.ServiceOptions;
+import com.google.protobuf.Empty;
 
 import org.eclipse.uprotocol.UprotocolOptions;
 import org.eclipse.uprotocol.rpc.CallOptions;
@@ -77,6 +80,8 @@ public class Example {
         private final UAuthority authority;
         private final CallOptions options;
 
+        private int clickCount = 0;
+
         private Stub(RpcClient proxy, UAuthority authority, CallOptions options) {
             this.proxy = proxy;
             this.authority = authority;
@@ -102,7 +107,10 @@ public class Example {
         }
 
         public CompletionStage<UStatus> executeDoorCommand(DoorCommand request) {
-            return mapResponse(proxy.invokeMethod(buildUri(METHOD_EXECUTE_DOOR_COMMAND), packToAny(request), options), UStatus.class);
+            clickCount++;
+            Log.d("ExampleClient", "sending RPC Request on click: " + clickCount);
+            return mapResponse(proxy.invokeMethod(buildUri(METHOD_EXECUTE_DOOR_COMMAND), packToAny(Empty.getDefaultInstance()), options), UStatus.class);
+//            return mapResponse(proxy.invokeMethod(buildUri(METHOD_EXECUTE_DOOR_COMMAND), packToAny(request), options), UStatus.class);
         }
     }
 }

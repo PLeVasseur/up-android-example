@@ -199,6 +199,8 @@ public class ExampleService extends Service {
     }
 
     private void handleRequestMessage(@NonNull UMessage requestMessage, @NonNull CompletableFuture<UPayload> responseFuture) {
+        long receiveTimestamp = System.nanoTime();
+        Log.d("ExampleService", "afterReceive: " + receiveTimestamp);
         final UUri methodUri = requestMessage.getAttributes().getSink();
         final BiConsumer<UPayload, CompletableFuture<UPayload>> handler = mMethodHandlers.get(methodUri);
         if (handler != null) {
@@ -209,6 +211,7 @@ public class ExampleService extends Service {
     private void executeDoorCommand(@NonNull UPayload requestPayload,
             @NonNull CompletableFuture<UPayload> responseFuture) {
         UStatus status;
+        Log.d("example-service", "immediately after receiving");
         try {
             final DoorCommand request = unpack(requestPayload, DoorCommand.class).orElseThrow(IllegalArgumentException::new);
             final String instance = request.getDoor().getInstance();
