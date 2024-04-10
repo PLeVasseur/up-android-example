@@ -21,7 +21,7 @@
  * SPDX-FileCopyrightText: 2023 General Motors GTO LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-package org.eclipse.uprotocol.example.v1;
+package org.eclipse.uprotocol.streamer.common;
 
 import static org.eclipse.uprotocol.rpc.RpcMapper.mapResponse;
 import static org.eclipse.uprotocol.transport.builder.UPayloadBuilder.packToAny;
@@ -29,6 +29,8 @@ import static org.eclipse.uprotocol.transport.builder.UPayloadBuilder.packToAny;
 import com.google.protobuf.DescriptorProtos.ServiceOptions;
 
 import org.eclipse.uprotocol.UprotocolOptions;
+import org.eclipse.uprotocol.example.v1.DoorCommand;
+import org.eclipse.uprotocol.example.v1.ExampleProto;
 import org.eclipse.uprotocol.rpc.RpcClient;
 import org.eclipse.uprotocol.uri.factory.UResourceBuilder;
 import org.eclipse.uprotocol.v1.CallOptions;

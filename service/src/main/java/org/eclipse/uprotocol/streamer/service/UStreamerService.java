@@ -21,7 +21,7 @@
  * SPDX-FileCopyrightText: 2023 General Motors GTO LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-package org.eclipse.uprotocol.example.service;
+package org.eclipse.uprotocol.streamer.service;
 
 import static org.eclipse.uprotocol.common.util.UStatusUtils.STATUS_OK;
 import static org.eclipse.uprotocol.common.util.UStatusUtils.checkArgument;
@@ -49,7 +49,7 @@ import org.eclipse.uprotocol.core.usubscription.v3.CreateTopicRequest;
 import org.eclipse.uprotocol.core.usubscription.v3.USubscription;
 import org.eclipse.uprotocol.example.v1.Door;
 import org.eclipse.uprotocol.example.v1.DoorCommand;
-import org.eclipse.uprotocol.example.v1.Example;
+import org.eclipse.uprotocol.streamer.common.Example;
 import org.eclipse.uprotocol.transport.UListener;
 import org.eclipse.uprotocol.transport.builder.UAttributesBuilder;
 import org.eclipse.uprotocol.uri.factory.UResourceBuilder;
@@ -69,7 +69,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 @SuppressWarnings("SameParameterValue")
-public class ExampleService extends Service {
+public class UStreamerService extends Service {
     private static final String TAG = Example.SERVICE.getName();
     private static final UUri SERVICE_URI = UUri.newBuilder()
             .setEntity(Example.SERVICE)

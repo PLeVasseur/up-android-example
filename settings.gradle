@@ -25,7 +25,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'uProtocol Example'
+rootProject.name = 'uStreamer Service'
 include ':common'
-include ':client'
 include ':service'

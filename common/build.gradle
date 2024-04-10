@@ -17,7 +17,7 @@ plugins {
 apply from: '../gradle/config.gradle'
 
 android {
-    namespace 'org.eclipse.uprotocol.examples.common'
+    namespace 'org.eclipse.uprotocol.streamer.common'
     compileSdk config.sdkVersion
 
     defaultConfig {

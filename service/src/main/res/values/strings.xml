@@ -11,5 +11,5 @@
  * SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
-    <string name="app_name">uService Example</string>
+    <string name="app_name">uStreamer Service</string>
 </resources>

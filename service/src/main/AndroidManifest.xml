@@ -24,7 +24,7 @@
         android:roundIcon="@mipmap/ic_launcher_round">
 
         <service
-            android:name=".ExampleService"
+            android:name=".UStreamerService"
             android:enabled="true"
             android:exported="true">
             <meta-data
