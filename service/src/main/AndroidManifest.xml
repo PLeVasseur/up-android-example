@@ -29,7 +29,7 @@
             android:exported="true">
             <meta-data
                 android:name="uprotocol.entity.name"
-                android:value="example.service" />
+                android:value="streamer.service" />
             <meta-data
                 android:name="uprotocol.entity.version"
                 android:value="1" />

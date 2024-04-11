@@ -16,7 +16,7 @@ plugins {
 apply from: '../gradle/config.gradle'
 
 android {
-    namespace 'org.eclipse.uprotocol.example.service'
+    namespace 'org.eclipse.uprotocol.streamer.service'
     compileSdk config.sdkVersion
 
     defaultConfig {
@@ -35,7 +35,7 @@ android {
         }
     }
 
-    base.archivesName = 'UServiceExample'
+    base.archivesName = 'UStreamerService'
     buildTypes {
         release {
             signingConfig signingConfigs.platform

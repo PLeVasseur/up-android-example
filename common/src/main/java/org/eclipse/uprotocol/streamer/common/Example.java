@@ -66,13 +66,15 @@ public class Example {
     private Example() {}
 
     private static String getServiceName() {
-        final ServiceOptions options = ExampleProto.getDescriptor().findServiceByName("Example").getOptions();
-        return (options != null) ? options.getExtension(UprotocolOptions.name) : "";
+        return "streamer.service";
+//        final ServiceOptions options = ExampleProto.getDescriptor().findServiceByName("Example").getOptions();
+//        return (options != null) ? options.getExtension(UprotocolOptions.name) : "";
     }
 
     private static int getServiceVersion() {
-        final ServiceOptions options = ExampleProto.getDescriptor().findServiceByName("Example").getOptions();
-        return (options != null) ? options.getExtension(UprotocolOptions.versionMajor) : 0;
+        return 1;
+//        final ServiceOptions options = ExampleProto.getDescriptor().findServiceByName("Example").getOptions();
+//        return (options != null) ? options.getExtension(UprotocolOptions.versionMajor) : 0;
     }
 
     public static Example.Stub newStub(RpcClient proxy) {
