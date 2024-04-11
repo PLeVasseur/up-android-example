@@ -67,14 +67,10 @@ public class Example {
 
     private static String getServiceName() {
         return "streamer.service";
-//        final ServiceOptions options = ExampleProto.getDescriptor().findServiceByName("Example").getOptions();
-//        return (options != null) ? options.getExtension(UprotocolOptions.name) : "";
     }
 
     private static int getServiceVersion() {
         return 1;
-//        final ServiceOptions options = ExampleProto.getDescriptor().findServiceByName("Example").getOptions();
-//        return (options != null) ? options.getExtension(UprotocolOptions.versionMajor) : 0;
     }
 
     public static Example.Stub newStub(RpcClient proxy) {

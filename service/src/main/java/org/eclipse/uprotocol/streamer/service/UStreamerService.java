@@ -136,11 +136,11 @@ public class UStreamerService extends Service {
                     return isOk(status) ?
                             CompletableFuture.completedFuture(status) :
                             CompletableFuture.failedFuture(new UStatusException(status));
-                })
-                .thenCompose(it -> CompletableFuture.allOf(
-                        createTopic(mapDoorTopic(DOOR_FRONT_LEFT.getInstance())),
-                        createTopic(mapDoorTopic(DOOR_FRONT_RIGHT.getInstance())),
-                        registerMethod(mapMethodUri(Example.METHOD_EXECUTE_DOOR_COMMAND), this::executeDoorCommand)));
+                });
+
+        NativeBridge.initializeStreamer(mUPClient, mUSubscriptionStub);
+
+        // TODO: Call into native bridge module which will hand off the mUPClient and mUSubscriptionStub
     }
 
     @Override
