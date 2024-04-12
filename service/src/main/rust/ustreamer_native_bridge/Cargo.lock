@@ -1915,7 +1915,7 @@ dependencies = [
 [[package]]
 name = "up-client-android"
 version = "0.1.0"
-source = "git+https://github.com/PLeVasseur/up-client-android-rust?branch=feature/up-android-streamer#7a6dc9d54f2a2fb1f9cccfa36abb0fb5c2ae700d"
+source = "git+https://github.com/PLeVasseur/up-client-android-rust?branch=feature/up-android-streamer#1dcfee3c0a6b4feeda9c8b858e20e8d7069d82f3"
 dependencies = [
  "async-std",
  "async-trait",

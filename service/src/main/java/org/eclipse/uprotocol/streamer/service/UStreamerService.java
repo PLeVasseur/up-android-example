@@ -42,10 +42,15 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.protobuf.Empty;
+
 import org.eclipse.uprotocol.UPClient;
 import org.eclipse.uprotocol.common.UStatusException;
 import org.eclipse.uprotocol.common.util.log.Key;
 import org.eclipse.uprotocol.core.usubscription.v3.CreateTopicRequest;
+import org.eclipse.uprotocol.core.usubscription.v3.SubscriberInfo;
+import org.eclipse.uprotocol.core.usubscription.v3.SubscriptionRequest;
+import org.eclipse.uprotocol.core.usubscription.v3.SubscriptionResponse;
 import org.eclipse.uprotocol.core.usubscription.v3.USubscription;
 import org.eclipse.uprotocol.example.v1.Door;
 import org.eclipse.uprotocol.example.v1.DoorCommand;
@@ -53,8 +58,11 @@ import org.eclipse.uprotocol.streamer.common.Example;
 import org.eclipse.uprotocol.transport.UListener;
 import org.eclipse.uprotocol.transport.builder.UAttributesBuilder;
 import org.eclipse.uprotocol.uri.factory.UResourceBuilder;
+import org.eclipse.uprotocol.v1.UAttributes;
 import org.eclipse.uprotocol.v1.UCode;
+import org.eclipse.uprotocol.v1.UEntity;
 import org.eclipse.uprotocol.v1.UMessage;
+import org.eclipse.uprotocol.v1.UPayload;
 import org.eclipse.uprotocol.v1.UPriority;
 import org.eclipse.uprotocol.v1.UResource;
 import org.eclipse.uprotocol.v1.UStatus;
@@ -108,6 +116,43 @@ public class UStreamerService extends Service {
     private UPClient mUPClient;
     private USubscription.Stub mUSubscriptionStub;
 
+    protected static final UPayload PAYLOAD = packToAny(Empty.getDefaultInstance());
+
+    protected static final UEntity SERVICE = UEntity.newBuilder()
+            .setName("client.test")
+            .setVersionMajor(1)
+            .build();
+
+    protected static final UResource RESOURCE_RUST = UResource.newBuilder()
+            .setName("resource")
+            .setInstance("main")
+            .setMessage("Rust")
+            .build();
+    protected static final UUri RESOURCE_URI_TO_RUST = UUri.newBuilder()
+            .setEntity(SERVICE)
+            .setResource(RESOURCE_RUST)
+            .build();
+    private static final UMessage MESSAGE_TO_RUST = buildMessage(PAYLOAD, buildPublishAttributes(RESOURCE_URI_TO_RUST));
+
+    protected static @NonNull UMessage buildMessage(UPayload payload, UAttributes attributes) {
+        final UMessage.Builder builder = UMessage.newBuilder();
+        if (payload != null) {
+            builder.setPayload(payload);
+        }
+        if (attributes != null) {
+            builder.setAttributes(attributes);
+        }
+        return builder.build();
+    }
+
+    protected static @NonNull UAttributes buildPublishAttributes(@NonNull UUri source) {
+        return newPublishAttributesBuilder(source).build();
+    }
+
+    protected static @NonNull UAttributesBuilder newPublishAttributesBuilder(@NonNull UUri source) {
+        return UAttributesBuilder.publish(source, UPriority.UPRIORITY_CS0);
+    }
+
     private static @NonNull UUri mapDoorTopic(@NonNull String instance) {
         final UUri topic = sDoorTopics.get(instance);
         return (topic != null) ? topic : UUri.getDefaultInstance();
@@ -116,6 +161,16 @@ public class UStreamerService extends Service {
     private static @NonNull UUri mapMethodUri(@NonNull String method) {
         final UUri uri = sMethodUris.get(method);
         return (uri != null) ? uri : UUri.getDefaultInstance();
+    }
+
+    private void subscribe(@NonNull UUri topic) {
+        CompletableFuture<SubscriptionResponse> future = mUSubscriptionStub.subscribe(SubscriptionRequest.newBuilder()
+                .setTopic(topic)
+                .setSubscriber(SubscriberInfo.newBuilder().
+                        setUri(UUri.newBuilder()
+                                .setEntity(mUPClient.getEntity())
+                                .build()))
+                .build()).toCompletableFuture();
     }
 
     @Override
@@ -133,12 +188,21 @@ public class UStreamerService extends Service {
         mUPClient.connect()
                 .thenCompose(status -> {
                     logStatus("connect", status);
+                    if (isOk(status)) {
+                        subscribe(RESOURCE_URI_TO_RUST);
+
+                        Thread thread = new Thread(() -> {
+                            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+                            NativeBridge.initializeStreamer(mUPClient, mUSubscriptionStub, UUri.class,
+                                    UStatus.class, UListenerNativeBridge.class,
+                                    NativeBridge.class);
+                        });
+                        thread.start();
+                    }
                     return isOk(status) ?
                             CompletableFuture.completedFuture(status) :
                             CompletableFuture.failedFuture(new UStatusException(status));
                 });
-
-        NativeBridge.initializeStreamer(mUPClient, mUSubscriptionStub);
 
         // TODO: Call into native bridge module which will hand off the mUPClient and mUSubscriptionStub
     }

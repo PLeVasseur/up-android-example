@@ -8,7 +8,10 @@ import org.eclipse.uprotocol.v1.UStatus;
 import org.eclipse.uprotocol.v1.UUri;
 
 public class NativeBridge {
-    public static native String initializeStreamer(UPClient client, USubscription.Stub uSubscription);
+    public static native String initializeStreamer(UPClient client, USubscription.Stub uSubscription,
+                                                   Class<?> UUriClass, Class<?> UStatusClass,
+                                                   Class<?> UListenerNativeBridgeClass,
+                                                   Class<?> NativeBridgeClass);
 
     public static native String teardownStreamer();
 

@@ -1,11 +1,13 @@
 use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 use async_std::task;
 use jni::objects::{JByteArray, JClass, JObject, ReleaseMode};
 use jni::sys::{jbyteArray, jobject, jstring};
 use jni::JNIEnv;
-use log::{LevelFilter, trace};
+use log::{info, LevelFilter, trace};
 use up_client_android::UPClientAndroid;
-use up_rust::{UAuthority, UEntity, UListener, UMessage, UStatus, UTransport, UUri};
+use up_rust::{UAuthority, UEntity, UListener, UMessage, UResource, UStatus, UTransport, UUri};
 use up_streamer::UStreamer;
 use android_logger::Config;
 use async_trait::async_trait;
@@ -40,6 +42,10 @@ pub extern "system" fn Java_org_eclipse_uprotocol_streamer_service_NativeBridge_
     class: JClass<'local>,
     up_client: JObject,
     usub: JObject,
+    uuri_class: JClass,
+    ustatus_class: JClass,
+    ulistener_native_bridge_class: JClass,
+    native_bridge_class: JClass
 ) -> jstring {
 
     android_logger::init_once(
@@ -48,27 +54,54 @@ pub extern "system" fn Java_org_eclipse_uprotocol_streamer_service_NativeBridge_
 
     log::info!("entered initializeStreamer");
 
-    let ustreamer = UStreamer::new("AndroidStreamer", 100);
-    let up_client_android = task::block_on(UPClientAndroid::new(&env, up_client, usub));
+    // Convert local references to global references
+    let up_client = env
+        .new_global_ref(up_client)
+        .expect("Failed to create global ref for up_client");
+    let usub = env
+        .new_global_ref(usub)
+        .expect("Failed to create global ref for usub");
 
-    let dummy_uuri = UUri {
-        authority: Some(UAuthority {
-            name: Some("foo_authority".to_string()),
-            number: None,
-            ..Default::default()
-        }).into(),
-        entity: Some(UEntity {
-            name: "bar_entity".to_string(),
-            version_major: Some(1),
-            ..Default::default()
-        }).into(),
-        ..Default::default()
-    };
+    let uuri_class = env.new_global_ref(uuri_class).expect("Failed to create global ref for uuri_class");
+    let ustatus_class = env.new_global_ref(ustatus_class).expect("Failed to create global ref for ustatus_class");
+    let ulistener_native_bridge_class = env.new_global_ref(ulistener_native_bridge_class).expect("Failed to create global ref for ulistener_native_bridge_class");
+    let native_bridge_class = env.new_global_ref(native_bridge_class).expect("Failed to create global ref for native_bridge_class");
 
-    let dummy_listener = Arc::new(DummyListener);
-    let register_res = task::block_on(up_client_android.register_listener(dummy_uuri, dummy_listener));
+    // Obtain the JavaVM from the JNIEnv
+    let vm = env.get_java_vm().expect("Failed to get JavaVM");
+
+    // thread::spawn(move ||{
+
+        let ustreamer = UStreamer::new("AndroidStreamer", 100);
+        let up_client_android = task::block_on(UPClientAndroid::new(vm, up_client, usub, uuri_class, ustatus_class, ulistener_native_bridge_class, native_bridge_class));
+
+        let dummy_uuri = UUri {
+            entity: Some(UEntity {
+                name: "client.test".to_string(),
+                version_major: Some(1),
+                ..Default::default()
+            }).into(),
+            resource: Some(UResource {
+                name: "resource".to_string(),
+                instance: Some("main".to_string()),
+                message: Some("Rust".to_string()),
+                ..Default::default()
+            }).into(),
+            ..Default::default()
+        };
+
+        let dummy_listener = Arc::new(DummyListener);
+        let register_res = task::block_on(up_client_android.register_listener(dummy_uuri, dummy_listener));
+        info!("Registration result: {register_res:?}");
+    // });
 
     // let up_client_zenoh = ...;
+
+    info!("sleeping here to let this this process, would need to do something more effective like have this be event driven");
+
+    thread::sleep(Duration::from_millis(20000));
+
+    info!("after sleeping");
 
     let empty_string = "";
     let mock_string = "mock_string";
