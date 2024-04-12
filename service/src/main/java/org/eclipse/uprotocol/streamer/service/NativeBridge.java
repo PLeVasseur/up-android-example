@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.eclipse.uprotocol.UPClient;
 import org.eclipse.uprotocol.core.usubscription.v3.USubscription;
+import org.eclipse.uprotocol.v1.UStatus;
 import org.eclipse.uprotocol.v1.UUri;
 
 public class NativeBridge {
@@ -13,6 +14,10 @@ public class NativeBridge {
 
     public static UUri deserializeToUUri(byte[] data) throws InvalidProtocolBufferException {
         return UUri.parseFrom(data);
+    }
+
+    public static byte[] serializeFromUStatus(UStatus data) {
+        return data.toByteArray();
     }
 
     static {
