@@ -39,8 +39,11 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.platform
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // TODO: Need to come up with actual way to solve this
+            //  I think there's some proguard rules or something I need to investigate
+            minifyEnabled false
+//            minifyEnabled true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             signingConfig signingConfigs.platform

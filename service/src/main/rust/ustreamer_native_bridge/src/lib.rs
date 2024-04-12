@@ -1,12 +1,31 @@
+use std::sync::Arc;
 use async_std::task;
-use jni::objects::{JClass, JObject};
-use jni::sys::{jobject, jstring};
+use jni::objects::{JByteArray, JClass, JObject, ReleaseMode};
+use jni::sys::{jbyteArray, jobject, jstring};
 use jni::JNIEnv;
-
-use log::LevelFilter;
+use log::{LevelFilter, trace};
 use up_client_android::UPClientAndroid;
+use up_rust::{UAuthority, UEntity, UListener, UMessage, UStatus, UTransport, UUri};
 use up_streamer::UStreamer;
 use android_logger::Config;
+use async_trait::async_trait;
+
+
+use protobuf::Message;
+
+#[derive(Clone)]
+pub struct DummyListener;
+
+#[async_trait]
+impl UListener for DummyListener {
+    async fn on_receive(&self, msg: UMessage) {
+        trace!("Pinged from inside of DummyListener: message: {msg:?}");
+    }
+
+    async fn on_error(&self, err: UStatus) {
+        todo!()
+    }
+}
 
 // This keeps Rust from "mangling" the name and making it unique for this
 // crate.
@@ -31,6 +50,23 @@ pub extern "system" fn Java_org_eclipse_uprotocol_streamer_service_NativeBridge_
 
     let ustreamer = UStreamer::new("AndroidStreamer", 100);
     let up_client_android = task::block_on(UPClientAndroid::new(&env, up_client, usub));
+
+    let dummy_uuri = UUri {
+        authority: Some(UAuthority {
+            name: Some("foo_authority".to_string()),
+            number: None,
+            ..Default::default()
+        }).into(),
+        entity: Some(UEntity {
+            name: "bar_entity".to_string(),
+            version_major: Some(1),
+            ..Default::default()
+        }).into(),
+        ..Default::default()
+    };
+
+    let dummy_listener = Arc::new(DummyListener);
+    let register_res = task::block_on(up_client_android.register_listener(dummy_uuri, dummy_listener));
 
     // let up_client_zenoh = ...;
 
@@ -78,3 +114,4 @@ pub extern "system" fn Java_org_eclipse_uprotocol_streamer_service_NativeBridge_
     // Finally, extract the raw pointer to return.
     output.into_raw()
 }
+

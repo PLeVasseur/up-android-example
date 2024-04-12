@@ -9,12 +9,14 @@ edition = "2021"
 crate_type = ["cdylib"]
 
 [dependencies]
+async-trait = { version = "0.1.80" }
 async-std = { version = "1.12.0" }
 jni = { version = "0.21.1" }
 log = { version = "0.4.21" }
 up-client-android = { git = "https://github.com/PLeVasseur/up-client-android-rust", branch = "feature/up-android-streamer" }
 up-rust = { git = "https://github.com/eclipse-uprotocol/up-rust", rev = "c705ac97602ad6917a93d23651e8a504ec7bb718" }
 up-streamer = { git = "https://github.com/PLeVasseur/up-streamer-rust", branch = "feature/initial-pluggable-ustreamer_utransport-thread-safe" }
+protobuf = { version = "3.4.0" }
 
 
 [target.'cfg(target_os = "android")'.dependencies]

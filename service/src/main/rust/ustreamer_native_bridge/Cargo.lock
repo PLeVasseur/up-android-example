@@ -258,9 +258,9 @@ checksum = "fbb36e985947064623dbd357f727af08ffd077f93d696782f3c56365fa2e2799"
 
 [[package]]
 name = "async-trait"
-version = "0.1.79"
+version = "0.1.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a507401cad91ec6a857ed5513a2073c82a9b9048762b885bb98655b306964681"
+checksum = "c6fa2087f2753a7da8cc1c0dbfcf89579dd57458e36769de5ac750b4671737ca"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1915,10 +1915,14 @@ dependencies = [
 [[package]]
 name = "up-client-android"
 version = "0.1.0"
-source = "git+https://github.com/PLeVasseur/up-client-android-rust?branch=feature/up-android-streamer#5a4cb3ad5a2648e6b384994e83676f93e9170420"
+source = "git+https://github.com/PLeVasseur/up-client-android-rust?branch=feature/up-android-streamer#72193bc42e5c6e453d838a4d866b6421c2898346"
 dependencies = [
+ "async-std",
+ "async-trait",
  "jni",
+ "lazy_static",
  "log",
+ "protobuf",
  "up-rust",
 ]
 
@@ -1975,8 +1979,10 @@ version = "0.1.0"
 dependencies = [
  "android_logger",
  "async-std",
+ "async-trait",
  "jni",
  "log",
+ "protobuf",
  "up-client-android",
  "up-rust",
  "up-streamer",
