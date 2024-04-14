@@ -1980,6 +1980,7 @@ dependencies = [
  "android_logger",
  "async-std",
  "async-trait",
+ "bytes",
  "jni",
  "log",
  "protobuf",

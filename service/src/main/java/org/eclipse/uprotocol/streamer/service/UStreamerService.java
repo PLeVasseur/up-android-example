@@ -193,9 +193,10 @@ public class UStreamerService extends Service {
 
                         Thread thread = new Thread(() -> {
                             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+                            ClassLoader necessaryClassLoader = getClass().getClassLoader();
                             NativeBridge.initializeStreamer(mUPClient, mUSubscriptionStub, UUri.class,
                                     UStatus.class, UListenerNativeBridge.class,
-                                    NativeBridge.class);
+                                    NativeBridge.class, necessaryClassLoader);
                         });
                         thread.start();
                     }
